@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>楓之谷經典服 楓幣幣值監控</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  body { font-family: -apple-system, "Microsoft JhengHei", sans-serif; background:#0f1220; color:#e8e8f0; margin:0; padding:24px; }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  .updated { color:#9a9ab0; font-size:0.85rem; margin-bottom:20px; }
+  .cards { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:28px; }
+  .card { background:#1a1e33; border-radius:12px; padding:16px 20px; min-width:160px; flex:1; }
+  .card .label { color:#9a9ab0; font-size:0.8rem; }
+  .card .value { font-size:1.6rem; font-weight:700; margin-top:4px; }
+  .best .value { color:#4ade80; }
+  .avg .value { color:#60a5fa; }
+  .min .value { color:#f87171; }
+  table { width:100%; border-collapse:collapse; background:#1a1e33; border-radius:12px; overflow:hidden; }
+  th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #2a2f4a; font-size:0.9rem; }
+  th { color:#9a9ab0; font-weight:600; }
+  a { color:#60a5fa; }
+  .chart-wrap { background:#1a1e33; border-radius:12px; padding:16px; margin-bottom:28px; }
+</style>
+</head>
+<body>
+  <h1>🍁 楓之谷經典服（菇菇寶貝）楓幣幣值監控</h1>
+  <div class="updated">最後更新：2026-08-23 06:16:41（每小時自動更新一次）</div>
+
+  <div class="cards">
+    <div class="card best"><div class="label">目前最佳幣值</div><div class="value">5000</div><div class="label">楓幣 / 元</div></div>
+    <div class="card avg"><div class="label">平均幣值</div><div class="value">4830</div><div class="label">楓幣 / 元</div></div>
+    <div class="card min"><div class="label">最低幣值</div><div class="value">4500</div><div class="label">楓幣 / 元</div></div>
+    <div class="card"><div class="label">目前擷取賣家數</div><div class="value">10</div></div>
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="rateChart" height="90"></canvas>
+  </div>
+
+  <h2>目前幣值最高的前 8 名賣家</h2>
+  <table>
+    <thead><tr><th>#</th><th>幣值</th><th>賣家標題</th><th>連結</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>1元 = 5000 楓幣</td><td>【100元=50萬楓幣】50萬楓幣=100元🐑小羊🐑𝟮𝟰𝗛菇🤍大量楓幣馬上交易🤍幣值浮動迅速🤍會開專屬勿直下</td><td><a href="/v3/mall/detail/2419241108" target="_blank" rel="noopener">查看</a></td></tr>
+<tr><td>2</td><td>1元 = 5000 楓幣</td><td>【100元=50萬楓幣】50萬楓幣=100元⭐速柏⭐|24H營業|菇菇寶貝|量大可談|會開專屬勿直下</td><td><a href="/v3/mall/detail/2419332049" target="_blank" rel="noopener">查看</a></td></tr>
+<tr><td>3</td><td>1元 = 5000 楓幣</td><td>【100元=50萬楓幣】500萬楓幣=1000元『🌺喬尹🌺』菇菇寶貝🌷楓幣🌷低價現貨🌷下前小窗詢(づ｡✪⌄✪｡)づ🌷</td><td><a href="/v3/mall/detail/2419238928" target="_blank" rel="noopener">查看</a></td></tr>
+<tr><td>4</td><td>1元 = 5000 楓幣</td><td>【100元=50萬楓幣】500萬楓幣=1000元~不要被當盤子了*手工安全0封號*量大在優惠*現貨＊穩定配合另有折扣＊</td><td><a href="/v3/mall/detail/2419322021" target="_blank" rel="noopener">查看</a></td></tr>
+<tr><td>5</td><td>1元 = 4900 楓幣</td><td>【100元=49萬楓幣】49萬楓幣=100元🍁楓幣24H補水站🍁全日供大量現貨✅幣值穩定🔥火速交易馬上到手🔥買千送禮</td><td><a href="/v3/mall/detail/2419392936" target="_blank" rel="noopener">查看</a></td></tr>
+<tr><td>6</td><td>1元 = 4800 楓幣</td><td>【100元=48萬楓幣】480萬楓幣=1000元🥇星宇🥇遊戲幣🌀安全至上🌀比值浮動🌀現貨快速交易</td><td><a href="/v3/mall/detail/2419316356" target="_blank" rel="noopener">查看</a></td></tr>
+<tr><td>7</td><td>1元 = 4800 楓幣</td><td>【100元=48萬楓幣】100萬楓幣=210元【🔥妃兔🔥】✅現貨馬上交易✅大量可談✅幣值偶有浮動請小窗詢問✅政府營業登記</td><td><a href="/v3/mall/detail/2419298709" target="_blank" rel="noopener">查看</a></td></tr>
+<tr><td>8</td><td>1元 = 4800 楓幣</td><td>【100元=48萬楓幣】48萬楓幣=100元⭐胖哥⭐有貨！現貨出售，安全放心。政府合法登記。</td><td><a href="/v3/mall/detail/2419309053" target="_blank" rel="noopener">查看</a></td></tr>
+    </tbody>
+  </table>
+
+<script>
+  const ctx = document.getElementById('rateChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['2026-08-23 06:16:44'],
+      datasets: [
+        { label: '最佳幣值', data: ['5000.0'], borderColor: '#4ade80', tension: 0.25, pointRadius: 0 },
+        { label: '平均幣值', data: ['4830.0'], borderColor: '#60a5fa', tension: 0.25, pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: '#e8e8f0' } } },
+      scales: {
+        x: { ticks: { color: '#9a9ab0', maxTicksLimit: 8 } },
+        y: { ticks: { color: '#9a9ab0' } }
+      }
+    }
+  });
+</script>
+</body>
+</html>
