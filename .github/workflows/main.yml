@@ -1,1 +1,35 @@
+name: 楓幣幣值監控
 
+on:
+  schedule:
+    - cron: "5 * * * *"   # 每小時的第5分執行一次 (UTC時間)
+  workflow_dispatch: {}    # 也可以手動在GitHub網站上按按鈕觸發
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 取出repo
+        uses: actions/checkout@v4
+
+      - name: 設定 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安裝套件
+        run: pip install requests beautifulsoup4
+
+      - name: 執行監控腳本
+        run: python maple_rate_monitor.py
+
+      - name: 提交更新後的網頁與紀錄
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html docs/rate_history.csv
+          git diff --quiet --cached || git commit -m "自動更新幣值資料 $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
