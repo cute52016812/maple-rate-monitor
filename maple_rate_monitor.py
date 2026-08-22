@@ -41,7 +41,6 @@ HTML_PATH = os.path.join(OUTPUT_DIR, "index.html")
 ALERT_THRESHOLD_PCT = 5.0      # 幣值變化超過這個百分比才提醒
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1540836845359857764/9IwWtfjvAMetwPcbDqwoo2nSdw3m0l5uLJH8qjdMxaJks3JAhWaXbD8ky0ANDIT1-CoV"       # 例如 "https://discord.com/api/webhooks/xxxx/yyyy"，留空則不通知
 TOP_N_DISPLAY = 8              # 排行榜顯示筆數
-HISTORY_POINTS_ON_CHART = 168  # 走勢圖最多顯示幾筆歷史紀錄（168=一週*每小時一筆）
 
 TW_TZ = timezone(timedelta(hours=8))
 
@@ -144,6 +143,76 @@ def esc(s: str) -> str:
     return html_lib.escape(s, quote=True)
 
 
+CANDLES_ON_CHART = 72  # K線圖最多顯示幾根蠟燭（每根=一次抓取快照）
+
+
+def build_candles(history_rows):
+    """把每小時快照轉成K線資料：
+    開盤=上一根收盤, 收盤=這次平均幣值, 最高=這次最佳幣值, 最低=這次最低幣值"""
+    candles = []
+    prev_close = None
+    for row in history_rows:
+        try:
+            high = float(row["best_rate"])
+            low = float(row["min_rate"])
+            close = float(row["avg_rate"])
+        except (KeyError, ValueError):
+            continue
+        open_ = prev_close if prev_close is not None else close
+        candles.append({"t": row["timestamp"], "open": open_, "high": high, "low": low, "close": close})
+        prev_close = close
+    return candles
+
+
+def render_candlestick_svg(candles, width=900, height=320):
+    candles = candles[-CANDLES_ON_CHART:]
+    if len(candles) < 2:
+        return '<p style="color:#9a9ab0;">歷史資料還太少，累積幾個小時後K線圖就會出現。</p>'
+
+    values = [c["high"] for c in candles] + [c["low"] for c in candles]
+    vmin, vmax = min(values), max(values)
+    pad = (vmax - vmin) * 0.1 or max(vmax * 0.02, 1)
+    vmin -= pad
+    vmax += pad
+
+    n = len(candles)
+    margin_left, margin_right, margin_top, margin_bottom = 55, 10, 10, 26
+    plot_w = width - margin_left - margin_right
+    plot_h = height - margin_top - margin_bottom
+    candle_w = plot_w / n
+    body_w = max(candle_w * 0.6, 1.5)
+
+    def y(v):
+        return margin_top + (vmax - v) / (vmax - vmin) * plot_h
+
+    parts = [f'<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">']
+
+    for gy_val in (vmax, (vmax + vmin) / 2, vmin):
+        gy = y(gy_val)
+        parts.append(f'<line x1="{margin_left}" y1="{gy:.1f}" x2="{width - margin_right}" y2="{gy:.1f}" stroke="#2a2f4a" stroke-width="1" />')
+        parts.append(f'<text x="4" y="{gy + 4:.1f}" font-size="11" fill="#9a9ab0">{gy_val:.0f}</text>')
+
+    for i, c in enumerate(candles):
+        cx = margin_left + i * candle_w + candle_w / 2
+        rising = c["close"] >= c["open"]
+        color = "#4ade80" if rising else "#f87171"
+        parts.append(f'<line x1="{cx:.1f}" y1="{y(c["high"]):.1f}" x2="{cx:.1f}" y2="{y(c["low"]):.1f}" stroke="{color}" stroke-width="1.4" />')
+        top = y(max(c["open"], c["close"]))
+        bot = y(min(c["open"], c["close"]))
+        h = max(bot - top, 1.5)
+        parts.append(f'<rect x="{cx - body_w/2:.1f}" y="{top:.1f}" width="{body_w:.1f}" height="{h:.1f}" fill="{color}" />')
+
+    label_every = max(1, n // 6)
+    for i, c in enumerate(candles):
+        if i % label_every == 0 or i == n - 1:
+            cx = margin_left + i * candle_w + candle_w / 2
+            short = c["t"][5:16]
+            parts.append(f'<text x="{cx:.1f}" y="{height - 8}" font-size="9" fill="#9a9ab0" text-anchor="middle">{esc(short)}</text>')
+
+    parts.append("</svg>")
+    return "".join(parts)
+
+
 def render_html(summary, listings, history_rows, updated_at: str):
     top = sorted(listings, key=lambda x: x["rate"], reverse=True)[:TOP_N_DISPLAY]
 
@@ -154,10 +223,8 @@ def render_html(summary, listings, history_rows, updated_at: str):
         for i, item in enumerate(top)
     )
 
-    chart_rows = history_rows[-HISTORY_POINTS_ON_CHART:]
-    labels = [r["timestamp"] for r in chart_rows]
-    best_series = [r["best_rate"] for r in chart_rows]
-    avg_series = [r["avg_rate"] for r in chart_rows]
+    candles = build_candles(history_rows)
+    candle_svg = render_candlestick_svg(candles)
 
     return f"""<!DOCTYPE html>
 <html lang="zh-Hant">
@@ -174,7 +241,6 @@ def render_html(summary, listings, history_rows, updated_at: str):
     location.replace(location.pathname + '?_t=' + Date.now());
   }}
 </script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
   body {{ font-family: -apple-system, "Microsoft JhengHei", sans-serif; background:#0f1220; color:#e8e8f0; margin:0; padding:24px; }}
   h1 {{ font-size: 1.4rem; margin-bottom: 4px; }}
@@ -191,6 +257,9 @@ def render_html(summary, listings, history_rows, updated_at: str):
   th {{ color:#9a9ab0; font-weight:600; }}
   a {{ color:#60a5fa; }}
   .chart-wrap {{ background:#1a1e33; border-radius:12px; padding:16px; margin-bottom:28px; }}
+  .legend {{ color:#9a9ab0; font-size:0.8rem; margin-top:8px; }}
+  .legend .up {{ color:#4ade80; }}
+  .legend .down {{ color:#f87171; }}
 </style>
 </head>
 <body>
@@ -205,7 +274,8 @@ def render_html(summary, listings, history_rows, updated_at: str):
   </div>
 
   <div class="chart-wrap">
-    <canvas id="rateChart" height="90"></canvas>
+    {candle_svg}
+    <div class="legend">每根蠟燭代表一次抓取（約一小時）：<span class="up">綠色=幣值比上次高</span>／<span class="down">紅色=比上次低</span>，影線頂端/底端為當次最佳/最低幣值</div>
   </div>
 
   <h2>目前幣值最高的前 {len(top)} 名賣家</h2>
@@ -215,28 +285,6 @@ def render_html(summary, listings, history_rows, updated_at: str):
       {rows_html}
     </tbody>
   </table>
-
-<script>
-  const ctx = document.getElementById('rateChart').getContext('2d');
-  new Chart(ctx, {{
-    type: 'line',
-    data: {{
-      labels: {labels!r},
-      datasets: [
-        {{ label: '最佳幣值', data: {best_series!r}, borderColor: '#4ade80', tension: 0.25, pointRadius: 0 }},
-        {{ label: '平均幣值', data: {avg_series!r}, borderColor: '#60a5fa', tension: 0.25, pointRadius: 0 }}
-      ]
-    }},
-    options: {{
-      responsive: true,
-      plugins: {{ legend: {{ labels: {{ color: '#e8e8f0' }} }} }},
-      scales: {{
-        x: {{ ticks: {{ color: '#9a9ab0', maxTicksLimit: 8 }} }},
-        y: {{ ticks: {{ color: '#9a9ab0' }} }}
-      }}
-    }}
-  }});
-</script>
 </body>
 </html>
 """
