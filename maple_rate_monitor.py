@@ -164,7 +164,16 @@ def render_html(summary, listings, history_rows, updated_at: str):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>楓之谷經典服 楓幣幣值監控</title>
+<script>
+  // 自動加上隨機參數，避免瀏覽器/CDN快取顯示舊資料
+  if (!location.search.includes('_t=')) {{
+    location.replace(location.pathname + '?_t=' + Date.now());
+  }}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
   body {{ font-family: -apple-system, "Microsoft JhengHei", sans-serif; background:#0f1220; color:#e8e8f0; margin:0; padding:24px; }}
