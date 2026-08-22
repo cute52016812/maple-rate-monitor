@@ -202,8 +202,19 @@ def parse_completed_listings(page_html: str, debug: bool = False):
             i += 1
 
     if debug or not results:
-        print(f"[除錯] 攤平後共 {len(lines)} 行，解析出 {len(results)} 筆。前30行內容：")
+        print(f"[除錯] 攤平後共 {len(lines)} 行，解析出 {len(results)} 筆。")
+        print(f"[除錯] 原始HTML長度: {len(page_html)} 字元")
+        print(f"[除錯] 文字中是否包含「已完成商品」: {'已完成商品' in text}")
+        print(f"[除錯] 文字中是否包含「交易完成」: {'交易完成' in text}")
+        print(f"[除錯] 文字中是否包含「新楓之谷：經典版」: {'新楓之谷：經典版' in text}")
+        print(f"[除錯] 前30行內容：")
         for l in lines[:30]:
+            print(f"  {l!r}")
+        print(f"[除錯] 第30~70行內容：")
+        for l in lines[30:70]:
+            print(f"  {l!r}")
+        print(f"[除錯] 最後20行內容：")
+        for l in lines[-20:]:
             print(f"  {l!r}")
 
     return results
