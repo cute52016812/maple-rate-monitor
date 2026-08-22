@@ -102,8 +102,6 @@ def parse_listings(page_html: str):
     return listings
 
 
-COMPLETED_PRICE_LINE_RE = re.compile(r"^([\d,]+)元$")
-COMPLETED_TIME_RE = re.compile(r"(\d{2}-\d{2}\s+\d{2}:\d{2})交易完成")
 COMPLETED_RATIO_PATTERNS = [
     (re.compile(r"(\d+(?:\.\d+)?)\s*萬楓幣\s*=\s*(\d+(?:\.\d+)?)\s*元"), "coins_first"),
     (re.compile(r"(\d+(?:\.\d+)?)\s*元\s*=\s*(\d+(?:\.\d+)?)\s*萬楓幣"), "price_first"),
@@ -133,57 +131,50 @@ def extract_completed_rate(title: str):
     return None
 
 
+COMPLETED_BREADCRUMB_PATTERN = re.compile(
+    r"新楓之谷：經典版\s*/\s*([^/\s]+)\s*/\s*(\S+)\s+.*?"
+    r"(\d{2}-\d{2}\s+\d{2}:\d{2})交易完成\s*([\d,]+)\s*元",
+    re.DOTALL,
+)
+
+
 def parse_completed_listings(page_html: str):
     """解析『已完成商品』頁面，回傳分類好的成交紀錄列表。
-    這頁是JS動態載入的資料改用?completed=1才拿得到，且沒有穩定的DOM結構可倚賴，
-    所以用『攤平成一行行文字，逐行掃描』的方式解析，比較不受HTML標籤細節影響。"""
+    這頁是JS動態載入的資料改用?completed=1才拿得到，且遊戲名稱/伺服器名稱在真實HTML裡
+    是分開的連結標籤，直接逐行掃描會斷行失敗，所以改用兩段式解析：
+    1. 標題：用 <a href=".../mall/detail/xxx"> 直接抓（跟一般商品列表同一招，最可靠）
+    2. 分類/完成時間/價格：把整頁攤平成一段以空白分隔的文字，用正則依序找出每一筆的
+       breadcrumb+完成時間+價格，再按照出現順序跟標題一一配對（兩者順序理論上一致）"""
     soup = BeautifulSoup(page_html, "html.parser")
-    text = soup.get_text("\n")
-    lines = [l.strip() for l in text.split("\n") if l.strip()]
+
+    titles_and_urls = []
+    seen_hrefs = set()
+    for a in soup.find_all("a", href=re.compile(r"/v3/mall/detail/\d+")):
+        title = a.get_text(strip=True)
+        href = a.get("href", "")
+        if not title or href in seen_hrefs:
+            continue
+        seen_hrefs.add(href)
+        titles_and_urls.append((title, href))
+
+    flat_text = soup.get_text(" ", strip=True)
+    matches = list(COMPLETED_BREADCRUMB_PATTERN.finditer(flat_text))
 
     results = []
-    pending_title = None
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        if line.startswith("新楓之谷：經典版") and "/" in line:
-            parts = [p.strip() for p in line.split("/")]
-            server = parts[1] if len(parts) > 1 else ""
-            category = parts[2] if len(parts) > 2 else ""
-            title = pending_title
-
-            j = i + 1
-            completed_time = None
-            price = None
-            limit = min(len(lines), i + 8)
-            while j < limit:
-                m_t = COMPLETED_TIME_RE.search(lines[j])
-                if m_t:
-                    completed_time = m_t.group(1)
-                m_p = COMPLETED_PRICE_LINE_RE.match(lines[j])
-                if m_p and price is None:
-                    price = m_p.group(1).replace(",", "")
-                j += 1
-                if completed_time and price:
-                    break
-
-            if title and completed_time and price:
-                bucket = classify_completed_item(category, title)
-                rate = extract_completed_rate(title) if bucket == "遊戲幣" else None
-                results.append({
-                    "title": title,
-                    "server": server,
-                    "category": category,
-                    "bucket": bucket,
-                    "completed_time": completed_time,
-                    "price": price,
-                    "rate": rate,
-                })
-            i = j
-            continue
-        else:
-            pending_title = line
-            i += 1
+    for (title, href), m in zip(titles_and_urls, matches):
+        server, category, completed_time, price_raw = m.groups()
+        price = price_raw.replace(",", "")
+        bucket = classify_completed_item(category, title)
+        rate = extract_completed_rate(title) if bucket == "遊戲幣" else None
+        results.append({
+            "title": title,
+            "server": server,
+            "category": category,
+            "bucket": bucket,
+            "completed_time": completed_time,
+            "price": price,
+            "rate": rate,
+        })
 
     return results
 
