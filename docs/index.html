@@ -13,7 +13,6 @@
     location.replace(location.pathname + '?_t=' + Date.now());
   }
 </script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
   body { font-family: -apple-system, "Microsoft JhengHei", sans-serif; background:#0f1220; color:#e8e8f0; margin:0; padding:24px; }
   h1 { font-size: 1.4rem; margin-bottom: 4px; }
@@ -30,11 +29,14 @@
   th { color:#9a9ab0; font-weight:600; }
   a { color:#60a5fa; }
   .chart-wrap { background:#1a1e33; border-radius:12px; padding:16px; margin-bottom:28px; }
+  .legend { color:#9a9ab0; font-size:0.8rem; margin-top:8px; }
+  .legend .up { color:#4ade80; }
+  .legend .down { color:#f87171; }
 </style>
 </head>
 <body>
   <h1>🍁 楓之谷經典服（菇菇寶貝）楓幣幣值監控</h1>
-  <div class="updated">最後更新：2026-08-23 06:54:03（每小時自動更新一次）</div>
+  <div class="updated">最後更新：2026-08-23 07:01:07（每小時自動更新一次）</div>
 
   <div class="cards">
     <div class="card best"><div class="label">目前最佳幣值</div><div class="value">5000</div><div class="label">楓幣 / 元</div></div>
@@ -44,7 +46,8 @@
   </div>
 
   <div class="chart-wrap">
-    <canvas id="rateChart" height="90"></canvas>
+    <svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;"><line x1="55" y1="10.0" x2="890" y2="10.0" stroke="#2a2f4a" stroke-width="1" /><text x="4" y="14.0" font-size="11" fill="#9a9ab0">5050</text><line x1="55" y1="152.0" x2="890" y2="152.0" stroke="#2a2f4a" stroke-width="1" /><text x="4" y="156.0" font-size="11" fill="#9a9ab0">4750</text><line x1="55" y1="294.0" x2="890" y2="294.0" stroke="#2a2f4a" stroke-width="1" /><text x="4" y="298.0" font-size="11" fill="#9a9ab0">4450</text><line x1="101.4" y1="33.7" x2="101.4" y2="270.3" stroke="#4ade80" stroke-width="1.4" /><rect x="73.6" y="114.1" width="55.7" height="1.5" fill="#4ade80" /><line x1="194.2" y1="33.7" x2="194.2" y2="270.3" stroke="#4ade80" stroke-width="1.4" /><rect x="166.3" y="114.1" width="55.7" height="1.5" fill="#4ade80" /><line x1="286.9" y1="33.7" x2="286.9" y2="270.3" stroke="#4ade80" stroke-width="1.4" /><rect x="259.1" y="114.1" width="55.7" height="1.5" fill="#4ade80" /><line x1="379.7" y1="33.7" x2="379.7" y2="270.3" stroke="#4ade80" stroke-width="1.4" /><rect x="351.9" y="114.1" width="55.7" height="1.5" fill="#4ade80" /><line x1="472.5" y1="33.7" x2="472.5" y2="270.3" stroke="#4ade80" stroke-width="1.4" /><rect x="444.7" y="114.1" width="55.7" height="1.5" fill="#4ade80" /><line x1="565.3" y1="33.7" x2="565.3" y2="270.3" stroke="#4ade80" stroke-width="1.4" /><rect x="537.4" y="114.1" width="55.7" height="1.5" fill="#4ade80" /><line x1="658.1" y1="33.7" x2="658.1" y2="270.3" stroke="#4ade80" stroke-width="1.4" /><rect x="630.2" y="114.1" width="55.7" height="1.5" fill="#4ade80" /><line x1="750.8" y1="33.7" x2="750.8" y2="270.3" stroke="#4ade80" stroke-width="1.4" /><rect x="723.0" y="114.1" width="55.7" height="1.5" fill="#4ade80" /><line x1="843.6" y1="33.7" x2="843.6" y2="270.3" stroke="#4ade80" stroke-width="1.4" /><rect x="815.8" y="114.1" width="55.7" height="1.5" fill="#4ade80" /><text x="101.4" y="312" font-size="9" fill="#9a9ab0" text-anchor="middle">08-23 06:16</text><text x="194.2" y="312" font-size="9" fill="#9a9ab0" text-anchor="middle">08-23 06:25</text><text x="286.9" y="312" font-size="9" fill="#9a9ab0" text-anchor="middle">08-23 06:27</text><text x="379.7" y="312" font-size="9" fill="#9a9ab0" text-anchor="middle">08-23 06:30</text><text x="472.5" y="312" font-size="9" fill="#9a9ab0" text-anchor="middle">08-23 06:36</text><text x="565.3" y="312" font-size="9" fill="#9a9ab0" text-anchor="middle">08-23 06:39</text><text x="658.1" y="312" font-size="9" fill="#9a9ab0" text-anchor="middle">08-23 06:49</text><text x="750.8" y="312" font-size="9" fill="#9a9ab0" text-anchor="middle">08-23 06:54</text><text x="843.6" y="312" font-size="9" fill="#9a9ab0" text-anchor="middle">08-23 07:01</text></svg>
+    <div class="legend">每根蠟燭代表一次抓取（約一小時）：<span class="up">綠色=幣值比上次高</span>／<span class="down">紅色=比上次低</span>，影線頂端/底端為當次最佳/最低幣值</div>
   </div>
 
   <h2>目前幣值最高的前 8 名賣家</h2>
@@ -61,27 +64,5 @@
 <tr><td>8</td><td>1元 = 4800 楓幣</td><td>【100元=48萬楓幣】48萬楓幣=100元⭐胖哥⭐有貨！現貨出售，安全放心。政府合法登記。</td><td><a href="https://www.8591.com.tw/v3/mall/detail/2419309053" target="_blank" rel="noopener">查看</a></td></tr>
     </tbody>
   </table>
-
-<script>
-  const ctx = document.getElementById('rateChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['2026-08-23 06:16:44', '2026-08-23 06:25:26', '2026-08-23 06:27:06', '2026-08-23 06:30:32', '2026-08-23 06:36:21', '2026-08-23 06:39:46', '2026-08-23 06:49:54', '2026-08-23 06:54:08'],
-      datasets: [
-        { label: '最佳幣值', data: ['5000.0', '5000.0', '5000.0', '5000.0', '5000.0', '5000.0', '5000.0', '5000.0'], borderColor: '#4ade80', tension: 0.25, pointRadius: 0 },
-        { label: '平均幣值', data: ['4830.0', '4830.0', '4830.0', '4830.0', '4830.0', '4830.0', '4830.0', '4830.0'], borderColor: '#60a5fa', tension: 0.25, pointRadius: 0 }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { labels: { color: '#e8e8f0' } } },
-      scales: {
-        x: { ticks: { color: '#9a9ab0', maxTicksLimit: 8 } },
-        y: { ticks: { color: '#9a9ab0' } }
-      }
-    }
-  });
-</script>
 </body>
 </html>
