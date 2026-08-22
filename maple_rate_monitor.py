@@ -37,8 +37,17 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "docs")
 CSV_PATH = os.path.join(OUTPUT_DIR, "rate_history.csv")
 HTML_PATH = os.path.join(OUTPUT_DIR, "index.html")
+BROADCAST_JSON_PATH = os.path.join(OUTPUT_DIR, "broadcast_data.json")
+BROADCAST_DISPLAY_COUNT = 15   # 網頁上顯示最近幾筆遊戲內廣播
 
-ALERT_THRESHOLD_PCT = 5.0      # 幣值變化超過這個百分比才提醒
+COMPLETED_URL = TARGET_URL + "&completed=1"
+COMPLETED_JSON_PATH = os.path.join(OUTPUT_DIR, "completed_trades.json")
+COMPLETED_DISPLAY_COUNT = 15    # 網頁上各分類顯示最近幾筆成交紀錄
+COMPLETED_MAX_STORED = 500      # 歷史紀錄最多保留幾筆（去重後）
+
+SCROLL_KEYWORDS = ("%", "卷軸", "卷", "敏", "攻擊", "力量", "智力", "幸運", "防禦", "速度", "跳躍")
+
+ALERT_THRESHOLD_PCT = 2.0      # 幣值變化超過這個百分比才提醒
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1540836845359857764/9IwWtfjvAMetwPcbDqwoo2nSdw3m0l5uLJH8qjdMxaJks3JAhWaXbD8ky0ANDIT1-CoV"       # 例如 "https://discord.com/api/webhooks/xxxx/yyyy"，留空則不通知
 TOP_N_DISPLAY = 8              # 排行榜顯示筆數
 
@@ -93,6 +102,123 @@ def parse_listings(page_html: str):
     return listings
 
 
+COMPLETED_PRICE_LINE_RE = re.compile(r"^([\d,]+)元$")
+COMPLETED_TIME_RE = re.compile(r"(\d{2}-\d{2}\s+\d{2}:\d{2})交易完成")
+COMPLETED_RATIO_PATTERNS = [
+    (re.compile(r"(\d+(?:\.\d+)?)\s*萬楓幣\s*=\s*(\d+(?:\.\d+)?)\s*元"), "coins_first"),
+    (re.compile(r"(\d+(?:\.\d+)?)\s*元\s*=\s*(\d+(?:\.\d+)?)\s*萬楓幣"), "price_first"),
+]
+
+
+def classify_completed_item(category: str, title: str) -> str:
+    if category == "楓幣":
+        return "遊戲幣"
+    if category == "道具":
+        if any(k in title for k in SCROLL_KEYWORDS):
+            return "卷軸"
+        return "其他道具"
+    return "其他"
+
+
+def extract_completed_rate(title: str):
+    for pattern, order in COMPLETED_RATIO_PATTERNS:
+        m = pattern.search(title)
+        if m:
+            if order == "coins_first":
+                coins, price = float(m.group(1)) * 10000, float(m.group(2))
+            else:
+                price, coins = float(m.group(1)), float(m.group(2)) * 10000
+            if price > 0:
+                return coins / price
+    return None
+
+
+def parse_completed_listings(page_html: str):
+    """解析『已完成商品』頁面，回傳分類好的成交紀錄列表。
+    這頁是JS動態載入的資料改用?completed=1才拿得到，且沒有穩定的DOM結構可倚賴，
+    所以用『攤平成一行行文字，逐行掃描』的方式解析，比較不受HTML標籤細節影響。"""
+    soup = BeautifulSoup(page_html, "html.parser")
+    text = soup.get_text("\n")
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
+
+    results = []
+    pending_title = None
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith("新楓之谷：經典版") and "/" in line:
+            parts = [p.strip() for p in line.split("/")]
+            server = parts[1] if len(parts) > 1 else ""
+            category = parts[2] if len(parts) > 2 else ""
+            title = pending_title
+
+            j = i + 1
+            completed_time = None
+            price = None
+            limit = min(len(lines), i + 8)
+            while j < limit:
+                m_t = COMPLETED_TIME_RE.search(lines[j])
+                if m_t:
+                    completed_time = m_t.group(1)
+                m_p = COMPLETED_PRICE_LINE_RE.match(lines[j])
+                if m_p and price is None:
+                    price = m_p.group(1).replace(",", "")
+                j += 1
+                if completed_time and price:
+                    break
+
+            if title and completed_time and price:
+                bucket = classify_completed_item(category, title)
+                rate = extract_completed_rate(title) if bucket == "遊戲幣" else None
+                results.append({
+                    "title": title,
+                    "server": server,
+                    "category": category,
+                    "bucket": bucket,
+                    "completed_time": completed_time,
+                    "price": price,
+                    "rate": rate,
+                })
+            i = j
+            continue
+        else:
+            pending_title = line
+            i += 1
+
+    return results
+
+
+def load_completed_history():
+    if not os.path.exists(COMPLETED_JSON_PATH):
+        return []
+    try:
+        import json
+        with open(COMPLETED_JSON_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def save_completed_history(entries):
+    import json
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    with open(COMPLETED_JSON_PATH, "w", encoding="utf-8") as f:
+        json.dump(entries[-COMPLETED_MAX_STORED:], f, ensure_ascii=False, indent=2)
+
+
+def merge_completed_entries(existing, new_items):
+    """用 (完成時間, 標題, 價格) 當作去重鍵，避免重複抓到的同一筆成交被重複記錄"""
+    seen = {(e.get("completed_time"), e.get("title"), e.get("price")) for e in existing}
+    merged = list(existing)
+    for item in new_items:
+        key = (item.get("completed_time"), item.get("title"), item.get("price"))
+        if key not in seen:
+            merged.append(item)
+            seen.add(key)
+    return merged
+
+
 def summarize(listings):
     if not listings:
         return None
@@ -137,6 +263,19 @@ def send_discord_alert(message: str):
         requests.post(DISCORD_WEBHOOK_URL, json={"content": message}, timeout=10)
     except Exception as e:
         print(f"[警告] Discord 通知傳送失敗: {e}")
+
+
+def load_broadcast_data():
+    """讀取本地端腳本推送過來的遊戲內廣播資料，檔案不存在就回傳空list"""
+    if not os.path.exists(BROADCAST_JSON_PATH):
+        return []
+    try:
+        import json
+        with open(BROADCAST_JSON_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
 
 
 def esc(s: str) -> str:
@@ -213,7 +352,9 @@ def render_candlestick_svg(candles, width=900, height=320):
     return "".join(parts)
 
 
-def render_html(summary, listings, history_rows, updated_at: str):
+def render_html(summary, listings, history_rows, updated_at: str, broadcast_entries=None, completed_entries=None):
+    broadcast_entries = broadcast_entries or []
+    completed_entries = completed_entries or []
     top = sorted(listings, key=lambda x: x["rate"], reverse=True)[:TOP_N_DISPLAY]
 
     rows_html = "\n".join(
@@ -225,6 +366,70 @@ def render_html(summary, listings, history_rows, updated_at: str):
 
     candles = build_candles(history_rows)
     candle_svg = render_candlestick_svg(candles)
+
+    def fmt_rate(b):
+        r = b.get("rate")
+        return f"1元 = {r:.0f} 楓幣" if r is not None else "（未抓到比例）"
+
+    recent_broadcasts = list(reversed(broadcast_entries[-BROADCAST_DISPLAY_COUNT:]))
+    if recent_broadcasts:
+        broadcast_rows_html = "\n".join(
+            f'<tr><td>{esc(b.get("timestamp",""))}</td>'
+            f'<td>{"收購" if b.get("type")=="buy" else ("販售" if b.get("type")=="sell" else "未知")}</td>'
+            f'<td>{fmt_rate(b)}</td>'
+            f'<td>{esc(b.get("quantity_note",""))}</td>'
+            f'<td>{esc(b.get("channel_note",""))}</td>'
+            f'<td style="color:#6b7094;">{esc(b.get("raw_text",""))[:40]}</td></tr>'
+            for b in recent_broadcasts
+        )
+        broadcast_section = f"""
+  <h2>🗣️ 遊戲內廣播（即時擷取）</h2>
+  <table>
+    <thead><tr><th>時間</th><th>類型</th><th>幣值</th><th>數量備註</th><th>交易方式</th><th>原文</th></tr></thead>
+    <tbody>
+      {broadcast_rows_html}
+    </tbody>
+  </table>
+"""
+    else:
+        broadcast_section = """
+  <h2>🗣️ 遊戲內廣播（即時擷取）</h2>
+  <p style="color:#9a9ab0;">目前還沒有廣播資料，本地端監控腳本開始執行後會陸續出現在這裡。</p>
+"""
+
+    def completed_table(bucket_name, icon):
+        items = [c for c in reversed(completed_entries) if c.get("bucket") == bucket_name][:COMPLETED_DISPLAY_COUNT]
+        if not items:
+            return f'<p style="color:#9a9ab0;">目前還沒有{bucket_name}的成交紀錄。</p>'
+        if bucket_name == "遊戲幣":
+            def rate_cell(c):
+                r = c.get("rate")
+                return f'{r:.0f} 楓幣/元' if r is not None else "（未抓到比例）"
+            rows = "\n".join(
+                f'<tr><td>{esc(c.get("completed_time",""))}</td>'
+                f'<td>{rate_cell(c)}</td>'
+                f'<td>{esc(c.get("price",""))}元</td>'
+                f'<td style="color:#6b7094;">{esc(c.get("title",""))[:45]}</td></tr>'
+                for c in items
+            )
+            header = "<tr><th>成交時間</th><th>幣值</th><th>成交價</th><th>標題</th></tr>"
+        else:
+            rows = "\n".join(
+                f'<tr><td>{esc(c.get("completed_time",""))}</td>'
+                f'<td>{esc(c.get("price",""))}元</td>'
+                f'<td style="color:#6b7094;">{esc(c.get("title",""))[:45]}</td></tr>'
+                for c in items
+            )
+            header = "<tr><th>成交時間</th><th>成交價</th><th>標題</th></tr>"
+        return f'<table><thead>{header}</thead><tbody>{rows}</tbody></table>'
+
+    completed_section = f"""
+  <h2>✅ 已完成成交紀錄</h2>
+  <h3 style="color:#9a9ab0;font-weight:600;">💰 遊戲幣</h3>
+  {completed_table("遊戲幣", "💰")}
+  <h3 style="color:#9a9ab0;font-weight:600;margin-top:20px;">📜 卷軸</h3>
+  {completed_table("卷軸", "📜")}
+"""
 
     return f"""<!DOCTYPE html>
 <html lang="zh-Hant">
@@ -285,6 +490,8 @@ def render_html(summary, listings, history_rows, updated_at: str):
       {rows_html}
     </tbody>
   </table>
+{broadcast_section}
+{completed_section}
 </body>
 </html>
 """
@@ -317,7 +524,23 @@ def run_once():
     append_record(summary)
     history_after = load_history()
 
-    html_out = render_html(summary, listings, history_after, now_str)
+    try:
+        completed_html = fetch_html(COMPLETED_URL)
+        completed_new = parse_completed_listings(completed_html)
+        print(f"已完成商品：這次抓到 {len(completed_new)} 筆")
+    except Exception as e:
+        print(f"[警告] 抓取已完成商品失敗: {e}")
+        completed_new = []
+
+    completed_existing = load_completed_history()
+    completed_merged = merge_completed_entries(completed_existing, completed_new)
+    save_completed_history(completed_merged)
+
+    html_out = render_html(
+        summary, listings, history_after, now_str,
+        broadcast_entries=load_broadcast_data(),
+        completed_entries=completed_merged,
+    )
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     with open(HTML_PATH, "w", encoding="utf-8") as f:
         f.write(html_out)
