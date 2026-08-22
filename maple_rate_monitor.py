@@ -131,50 +131,80 @@ def extract_completed_rate(title: str):
     return None
 
 
-COMPLETED_BREADCRUMB_PATTERN = re.compile(
-    r"新楓之谷：經典版\s*/\s*([^/\s]+)\s*/\s*(\S+)\s+.*?"
-    r"(\d{2}-\d{2}\s+\d{2}:\d{2})交易完成\s*([\d,]+)\s*元",
-    re.DOTALL,
-)
+COMPLETED_TIME_RE = re.compile(r"(\d{2}-\d{2}\s+\d{2}:\d{2})交易完成")
+COMPLETED_PRICE_LINE_RE = re.compile(r"^([\d,]+)元$")
+COMPLETED_TIMEAGO_RE = re.compile(r"^\d+(分鐘|小時|天)$")
 
 
-def parse_completed_listings(page_html: str):
+def parse_completed_listings(page_html: str, debug: bool = False):
     """解析『已完成商品』頁面，回傳分類好的成交紀錄列表。
-    這頁是JS動態載入的資料改用?completed=1才拿得到，且遊戲名稱/伺服器名稱在真實HTML裡
-    是分開的連結標籤，直接逐行掃描會斷行失敗，所以改用兩段式解析：
-    1. 標題：用 <a href=".../mall/detail/xxx"> 直接抓（跟一般商品列表同一招，最可靠）
-    2. 分類/完成時間/價格：把整頁攤平成一段以空白分隔的文字，用正則依序找出每一筆的
-       breadcrumb+完成時間+價格，再按照出現順序跟標題一一配對（兩者順序理論上一致）"""
+    重要：已完成的商品標題是「純文字」，不是超連結（因為交易結束後不能再點進商品頁），
+    這跟一般上架中商品的解析方式（找 <a href> 抓標題）完全不同，不能沿用。
+    這裡改用：把整頁攤平成一行一行文字，找到固定字串「新楓之谷：經典版」作為每一筆
+    紀錄的錨點，錨點前一行就是標題，錨點後面依序收集伺服器/分類，再往後找完成時間與價格。"""
     soup = BeautifulSoup(page_html, "html.parser")
-
-    titles_and_urls = []
-    seen_hrefs = set()
-    for a in soup.find_all("a", href=re.compile(r"/v3/mall/detail/\d+")):
-        title = a.get_text(strip=True)
-        href = a.get("href", "")
-        if not title or href in seen_hrefs:
-            continue
-        seen_hrefs.add(href)
-        titles_and_urls.append((title, href))
-
-    flat_text = soup.get_text(" ", strip=True)
-    matches = list(COMPLETED_BREADCRUMB_PATTERN.finditer(flat_text))
+    text = soup.get_text("\n")
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
 
     results = []
-    for (title, href), m in zip(titles_and_urls, matches):
-        server, category, completed_time, price_raw = m.groups()
-        price = price_raw.replace(",", "")
-        bucket = classify_completed_item(category, title)
-        rate = extract_completed_rate(title) if bucket == "遊戲幣" else None
-        results.append({
-            "title": title,
-            "server": server,
-            "category": category,
-            "bucket": bucket,
-            "completed_time": completed_time,
-            "price": price,
-            "rate": rate,
-        })
+    i = 0
+    while i < len(lines):
+        if lines[i] == "新楓之谷：經典版":
+            title = lines[i - 1] if i >= 1 else None
+
+            j = i + 1
+            tokens = []
+            while j < len(lines) and len(tokens) < 4:
+                t = lines[j]
+                if t == "/":
+                    j += 1
+                    continue
+                if t.startswith("/"):
+                    tokens.append(t[1:].strip())
+                    j += 1
+                    continue
+                if COMPLETED_TIMEAGO_RE.match(t) or COMPLETED_TIME_RE.search(t) or COMPLETED_PRICE_LINE_RE.match(t):
+                    break
+                tokens.append(t)
+                j += 1
+            server = tokens[0] if len(tokens) > 0 else ""
+            category = tokens[1] if len(tokens) > 1 else ""
+
+            completed_time = None
+            price = None
+            limit = min(len(lines), j + 6)
+            k = j
+            while k < limit:
+                m_t = COMPLETED_TIME_RE.search(lines[k])
+                if m_t:
+                    completed_time = m_t.group(1)
+                m_p = COMPLETED_PRICE_LINE_RE.match(lines[k])
+                if m_p and price is None:
+                    price = m_p.group(1).replace(",", "")
+                k += 1
+                if completed_time and price:
+                    break
+
+            if title and completed_time and price:
+                bucket = classify_completed_item(category, title)
+                rate = extract_completed_rate(title) if bucket == "遊戲幣" else None
+                results.append({
+                    "title": title,
+                    "server": server,
+                    "category": category,
+                    "bucket": bucket,
+                    "completed_time": completed_time,
+                    "price": price,
+                    "rate": rate,
+                })
+            i = k
+        else:
+            i += 1
+
+    if debug or not results:
+        print(f"[除錯] 攤平後共 {len(lines)} 行，解析出 {len(results)} 筆。前30行內容：")
+        for l in lines[:30]:
+            print(f"  {l!r}")
 
     return results
 
