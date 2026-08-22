@@ -38,7 +38,7 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "docs")
 CSV_PATH = os.path.join(OUTPUT_DIR, "rate_history.csv")
 HTML_PATH = os.path.join(OUTPUT_DIR, "index.html")
 
-ALERT_THRESHOLD_PCT = 0.0      # 幣值變化超過這個百分比才提醒
+ALERT_THRESHOLD_PCT = 5.0      # 幣值變化超過這個百分比才提醒
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1540836845359857764/9IwWtfjvAMetwPcbDqwoo2nSdw3m0l5uLJH8qjdMxaJks3JAhWaXbD8ky0ANDIT1-CoV"       # 例如 "https://discord.com/api/webhooks/xxxx/yyyy"，留空則不通知
 TOP_N_DISPLAY = 8              # 排行榜顯示筆數
 HISTORY_POINTS_ON_CHART = 168  # 走勢圖最多顯示幾筆歷史紀錄（168=一週*每小時一筆）
