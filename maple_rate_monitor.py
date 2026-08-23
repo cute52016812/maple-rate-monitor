@@ -37,8 +37,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "docs")
 CSV_PATH = os.path.join(OUTPUT_DIR, "rate_history.csv")
 HTML_PATH = os.path.join(OUTPUT_DIR, "index.html")
-BROADCAST_JSON_PATH = os.path.join(OUTPUT_DIR, "broadcast_data.json")
-BROADCAST_DISPLAY_COUNT = 15   # 網頁上顯示最近幾筆遊戲內廣播
 
 COMPLETED_URL = "https://www.8591.com.tw/v3/mall/list/70657?searchGame=70657&searchServer=70855&completed=1"
 COMPLETED_JSON_PATH = os.path.join(OUTPUT_DIR, "completed_trades.json")
@@ -48,7 +46,7 @@ COMPLETED_MAX_STORED = 500      # 歷史紀錄最多保留幾筆（去重後）
 SCROLL_KEYWORDS = ("%", "卷軸", "卷", "敏", "攻擊", "力量", "智力", "幸運", "防禦", "速度", "跳躍")
 
 ALERT_THRESHOLD_PCT = 5.0      # 幣值變化超過這個百分比才提醒
-DISCORD_WEBHOOK_URL = ""       # 例如 "https://discord.com/api/webhooks/xxxx/yyyy"，留空則不通知
+DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1540836845359857764/9IwWtfjvAMetwPcbDqwoo2nSdw3m0l5uLJH8qjdMxaJks3JAhWaXbD8ky0ANDIT1-CoV"       # 例如 "https://discord.com/api/webhooks/xxxx/yyyy"，留空則不通知
 TOP_N_DISPLAY = 8              # 排行榜顯示筆數
 
 TW_TZ = timezone(timedelta(hours=8))
@@ -115,6 +113,8 @@ def classify_completed_item(category: str, title: str) -> str:
         if any(k in title for k in SCROLL_KEYWORDS):
             return "卷軸"
         return "其他道具"
+    if category == "帳號":
+        return "帳號"
     return "其他"
 
 
@@ -300,19 +300,6 @@ def send_discord_alert(message: str):
         print(f"[警告] Discord 通知傳送失敗: {e}")
 
 
-def load_broadcast_data():
-    """讀取本地端腳本推送過來的遊戲內廣播資料，檔案不存在就回傳空list"""
-    if not os.path.exists(BROADCAST_JSON_PATH):
-        return []
-    try:
-        import json
-        with open(BROADCAST_JSON_PATH, encoding="utf-8") as f:
-            data = json.load(f)
-        return data if isinstance(data, list) else []
-    except Exception:
-        return []
-
-
 def esc(s: str) -> str:
     return html_lib.escape(s, quote=True)
 
@@ -387,8 +374,7 @@ def render_candlestick_svg(candles, width=900, height=320):
     return "".join(parts)
 
 
-def render_html(summary, listings, history_rows, updated_at: str, broadcast_entries=None, completed_entries=None):
-    broadcast_entries = broadcast_entries or []
+def render_html(summary, listings, history_rows, updated_at: str, completed_entries=None):
     completed_entries = completed_entries or []
     top = sorted(listings, key=lambda x: x["rate"], reverse=True)[:TOP_N_DISPLAY]
 
@@ -401,36 +387,6 @@ def render_html(summary, listings, history_rows, updated_at: str, broadcast_entr
 
     candles = build_candles(history_rows)
     candle_svg = render_candlestick_svg(candles)
-
-    def fmt_rate(b):
-        r = b.get("rate")
-        return f"1元 = {r:.0f} 楓幣" if r is not None else "（未抓到比例）"
-
-    recent_broadcasts = list(reversed(broadcast_entries[-BROADCAST_DISPLAY_COUNT:]))
-    if recent_broadcasts:
-        broadcast_rows_html = "\n".join(
-            f'<tr><td>{esc(b.get("timestamp",""))}</td>'
-            f'<td>{"收購" if b.get("type")=="buy" else ("販售" if b.get("type")=="sell" else "未知")}</td>'
-            f'<td>{fmt_rate(b)}</td>'
-            f'<td>{esc(b.get("quantity_note",""))}</td>'
-            f'<td>{esc(b.get("channel_note",""))}</td>'
-            f'<td style="color:#6b7094;">{esc(b.get("raw_text",""))[:40]}</td></tr>'
-            for b in recent_broadcasts
-        )
-        broadcast_section = f"""
-  <h2>🗣️ 遊戲內廣播（即時擷取）</h2>
-  <table>
-    <thead><tr><th>時間</th><th>類型</th><th>幣值</th><th>數量備註</th><th>交易方式</th><th>原文</th></tr></thead>
-    <tbody>
-      {broadcast_rows_html}
-    </tbody>
-  </table>
-"""
-    else:
-        broadcast_section = """
-  <h2>🗣️ 遊戲內廣播（即時擷取）</h2>
-  <p style="color:#9a9ab0;">目前還沒有廣播資料，本地端監控腳本開始執行後會陸續出現在這裡。</p>
-"""
 
     def completed_table(bucket_name, icon):
         items = [c for c in reversed(completed_entries) if c.get("bucket") == bucket_name][:COMPLETED_DISPLAY_COUNT]
@@ -464,6 +420,8 @@ def render_html(summary, listings, history_rows, updated_at: str, broadcast_entr
   {completed_table("遊戲幣", "💰")}
   <h3 style="color:#9a9ab0;font-weight:600;margin-top:20px;">📜 卷軸</h3>
   {completed_table("卷軸", "📜")}
+  <h3 style="color:#9a9ab0;font-weight:600;margin-top:20px;">👤 帳號</h3>
+  {completed_table("帳號", "👤")}
 """
 
     return f"""<!DOCTYPE html>
@@ -525,7 +483,6 @@ def render_html(summary, listings, history_rows, updated_at: str, broadcast_entr
       {rows_html}
     </tbody>
   </table>
-{broadcast_section}
 {completed_section}
 </body>
 </html>
@@ -573,7 +530,6 @@ def run_once():
 
     html_out = render_html(
         summary, listings, history_after, now_str,
-        broadcast_entries=load_broadcast_data(),
         completed_entries=completed_merged,
     )
     os.makedirs(OUTPUT_DIR, exist_ok=True)
