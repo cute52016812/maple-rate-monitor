@@ -131,15 +131,18 @@ def extract_completed_rate(title: str):
     return None
 
 
-COMPLETED_TIME_RE = re.compile(r"(\d{2}-\d{2}\s+\d{2}:\d{2})交易完成")
+COMPLETED_TIME_INLINE_RE = re.compile(r"(\d{2}-\d{2}\s+\d{2}:\d{2})交易完成")
+COMPLETED_DATE_ONLY_RE = re.compile(r"^\d{2}-\d{2}\s+\d{2}:\d{2}$")
 COMPLETED_PRICE_LINE_RE = re.compile(r"^([\d,]+)元$")
 COMPLETED_TIMEAGO_RE = re.compile(r"^\d+(分鐘|小時|天)$")
 
 
 def parse_completed_listings(page_html: str, debug: bool = False):
     """解析『已完成商品』頁面，回傳分類好的成交紀錄列表。
-    重要：已完成的商品標題是「純文字」，不是超連結（因為交易結束後不能再點進商品頁），
-    這跟一般上架中商品的解析方式（找 <a href> 抓標題）完全不同，不能沿用。
+    重要眉角：
+    1. 已完成的商品標題是「純文字」，不是超連結（因為交易結束後不能再點進商品頁）
+    2. 完成時間跟「交易完成」四個字實際上是分開兩行的（例如 '08-23 07:33' 一行，
+       '交易完成' 另一行），不是黏在同一行，這裡都要一併處理
     這裡改用：把整頁攤平成一行一行文字，找到固定字串「新楓之谷：經典版」作為每一筆
     紀錄的錨點，錨點前一行就是標題，錨點後面依序收集伺服器/分類，再往後找完成時間與價格。"""
     soup = BeautifulSoup(page_html, "html.parser")
@@ -163,7 +166,8 @@ def parse_completed_listings(page_html: str, debug: bool = False):
                     tokens.append(t[1:].strip())
                     j += 1
                     continue
-                if COMPLETED_TIMEAGO_RE.match(t) or COMPLETED_TIME_RE.search(t) or COMPLETED_PRICE_LINE_RE.match(t):
+                if (COMPLETED_TIMEAGO_RE.match(t) or COMPLETED_TIME_INLINE_RE.search(t)
+                        or COMPLETED_DATE_ONLY_RE.match(t) or t == "交易完成" or COMPLETED_PRICE_LINE_RE.match(t)):
                     break
                 tokens.append(t)
                 j += 1
@@ -172,13 +176,16 @@ def parse_completed_listings(page_html: str, debug: bool = False):
 
             completed_time = None
             price = None
-            limit = min(len(lines), j + 6)
+            limit = min(len(lines), j + 8)
             k = j
             while k < limit:
-                m_t = COMPLETED_TIME_RE.search(lines[k])
-                if m_t:
-                    completed_time = m_t.group(1)
-                m_p = COMPLETED_PRICE_LINE_RE.match(lines[k])
+                line = lines[k]
+                m_inline = COMPLETED_TIME_INLINE_RE.search(line)
+                if m_inline:
+                    completed_time = m_inline.group(1)
+                elif COMPLETED_DATE_ONLY_RE.match(line):
+                    completed_time = line
+                m_p = COMPLETED_PRICE_LINE_RE.match(line)
                 if m_p and price is None:
                     price = m_p.group(1).replace(",", "")
                 k += 1
