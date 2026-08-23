@@ -2,7 +2,7 @@ name: 楓幣幣值監控
 
 on:
   schedule:
-    - cron: "5 * * * *"   # 每小時的第5分執行一次 (UTC時間)
+    - cron: "*/15 * * * *"   # 每15分鐘執行一次 (UTC時間)，提高抓到冷門分類(卷軸)成交的機會
   workflow_dispatch: {}    # 也可以手動在GitHub網站上按按鈕觸發
 
 permissions:
