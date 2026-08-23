@@ -48,7 +48,7 @@ COMPLETED_MAX_STORED = 500      # 歷史紀錄最多保留幾筆（去重後）
 SCROLL_KEYWORDS = ("%", "卷軸", "卷", "敏", "攻擊", "力量", "智力", "幸運", "防禦", "速度", "跳躍")
 
 ALERT_THRESHOLD_PCT = 5.0      # 幣值變化超過這個百分比才提醒
-DISCORD_WEBHOOK_URL = ""       # 例如 "https://discord.com/api/webhooks/xxxx/yyyy"，留空則不通知
+DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1540836845359857764/9IwWtfjvAMetwPcbDqwoo2nSdw3m0l5uLJH8qjdMxaJks3JAhWaXbD8ky0ANDIT1-CoV"       # 例如 "https://discord.com/api/webhooks/xxxx/yyyy"，留空則不通知
 TOP_N_DISPLAY = 8              # 排行榜顯示筆數
 
 TW_TZ = timezone(timedelta(hours=8))
