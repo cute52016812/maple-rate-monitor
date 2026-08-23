@@ -202,20 +202,16 @@ def parse_completed_listings(page_html: str, debug: bool = False):
             i += 1
 
     if debug or not results:
+        anchor_idxs = [idx for idx, l in enumerate(lines) if l == "新楓之谷：經典版"]
         print(f"[除錯] 攤平後共 {len(lines)} 行，解析出 {len(results)} 筆。")
         print(f"[除錯] 原始HTML長度: {len(page_html)} 字元")
-        print(f"[除錯] 文字中是否包含「已完成商品」: {'已完成商品' in text}")
-        print(f"[除錯] 文字中是否包含「交易完成」: {'交易完成' in text}")
-        print(f"[除錯] 文字中是否包含「新楓之谷：經典版」: {'新楓之谷：經典版' in text}")
-        print(f"[除錯] 前30行內容：")
-        for l in lines[:30]:
-            print(f"  {l!r}")
-        print(f"[除錯] 第30~70行內容：")
-        for l in lines[30:70]:
-            print(f"  {l!r}")
-        print(f"[除錯] 最後20行內容：")
-        for l in lines[-20:]:
-            print(f"  {l!r}")
+        print(f"[除錯] 精確等於「新楓之谷：經典版」的行數: {len(anchor_idxs)}，位置: {anchor_idxs[:20]}")
+        for idx in anchor_idxs[:5]:
+            start = max(0, idx - 2)
+            end = min(len(lines), idx + 10)
+            print(f"[除錯] --- 錨點在第{idx}行，前後文（第{start}~{end}行） ---")
+            for l in lines[start:end]:
+                print(f"  {l!r}")
 
     return results
 
