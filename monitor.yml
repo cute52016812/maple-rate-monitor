@@ -2,7 +2,7 @@ name: 楓幣幣值監控
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # 每15分鐘執行一次 (UTC時間)，提高抓到冷門分類(卷軸)成交的機會
+    - cron: "7,37 * * * *"   # 每小時的第7分和第37分執行 (UTC時間)，約每30分鐘一次；避開整點時段以降低被GitHub排程延遲/跳過的機率
   workflow_dispatch: {}    # 也可以手動在GitHub網站上按按鈕觸發
 
 permissions:
@@ -32,5 +32,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/index.html docs/rate_history.csv docs/completed_trades.json
           git diff --quiet --cached || git commit -m "自動更新幣值資料 $(date -u '+%Y-%m-%d %H:%M UTC')"
-          git pull --rebase origin main
+          git fetch origin main
+          git merge -X ours origin/main --no-edit || true
           git push
