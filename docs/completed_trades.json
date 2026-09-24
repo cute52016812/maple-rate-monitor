@@ -1,14 +1,5 @@
 [
   {
-    "title": "【結哥】美髮欄位*2 整形欄*位*2 送禮 保字會員",
-    "server": "菇菇寶貝",
-    "category": "商城道具",
-    "bucket": "其他",
-    "completed_time": "09-10 13:37",
-    "price": "400",
-    "rate": null
-  },
-  {
     "title": "【結哥】皇家美髮劵*10送禮 保字會員",
     "server": "菇菇寶貝",
     "category": "商城道具",
@@ -4498,5 +4489,14 @@
     "completed_time": "09-25 01:08",
     "price": "540",
     "rate": null
+  },
+  {
+    "title": "2000萬楓幣=1000元如約",
+    "server": "菇菇寶貝",
+    "category": "楓幣",
+    "bucket": "遊戲幣",
+    "completed_time": "09-25 04:59",
+    "price": "1000",
+    "rate": 20000.0
   }
 ]
