@@ -1,14 +1,5 @@
 [
   {
-    "title": "【81等、槍騎兵】售菇菇寶貝81槍騎同帳號還有40冰雷",
-    "server": "菇菇寶貝",
-    "category": "帳號",
-    "bucket": "帳號",
-    "completed_time": "09-15 10:48",
-    "price": "27000",
-    "rate": null
-  },
-  {
     "title": "1500萬楓幣=1000元如約",
     "server": "菇菇寶貝",
     "category": "楓幣",
@@ -4497,6 +4488,15 @@
     "bucket": "其他道具",
     "completed_time": "10-01 22:53",
     "price": "1000",
+    "rate": null
+  },
+  {
+    "title": "【結哥】楓葉點數 一單=50點 保字會員",
+    "server": "菇菇寶貝",
+    "category": "商城道具",
+    "bucket": "其他",
+    "completed_time": "10-02 07:26",
+    "price": "500",
     "rate": null
   }
 ]
