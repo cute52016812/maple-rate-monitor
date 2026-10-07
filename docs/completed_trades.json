@@ -1,14 +1,5 @@
 [
   {
-    "title": "【0等、直登初始號】台灣直登號 可換設備 可改手機號碼/信箱",
-    "server": "菇菇寶貝",
-    "category": "帳號",
-    "bucket": "帳號",
-    "completed_time": "09-19 23:48",
-    "price": "319",
-    "rate": null
-  },
-  {
     "title": "【披風敏捷】菇菇寶貝",
     "server": "菇菇寶貝",
     "category": "道具",
@@ -4498,5 +4489,14 @@
     "completed_time": "10-07 00:20",
     "price": "3010",
     "rate": 28571.428571428572
+  },
+  {
+    "title": "2個整型擴充 2組道具廣  2組閃亮彗星",
+    "server": "菇菇寶貝",
+    "category": "商城道具",
+    "bucket": "其他",
+    "completed_time": "10-07 07:07",
+    "price": "1640",
+    "rate": null
   }
 ]
