@@ -1,14 +1,5 @@
 [
   {
-    "title": "P寵修塔爾克",
-    "server": "菇菇寶貝",
-    "category": "商城道具",
-    "bucket": "其他",
-    "completed_time": "09-25 14:19",
-    "price": "7466",
-    "rate": null
-  },
-  {
     "title": "600萬楓幣=318元⭐速柏⭐ 請朋友",
     "server": "菇菇寶貝",
     "category": "楓幣",
@@ -4497,6 +4488,15 @@
     "bucket": "卷軸",
     "completed_time": "10-15 00:05",
     "price": "1100",
+    "rate": null
+  },
+  {
+    "title": "【82等、槍騎兵】大肥哥武器82槍騎 內含38冰雷",
+    "server": "菇菇寶貝",
+    "category": "帳號",
+    "bucket": "帳號",
+    "completed_time": "10-15 06:11",
+    "price": "12765",
     "rate": null
   }
 ]
