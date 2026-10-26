@@ -1,86 +1,5 @@
 [
   {
-    "title": "【結哥】商城寵物一隻 送禮 保字會員",
-    "server": "菇菇寶貝",
-    "category": "商城道具",
-    "bucket": "其他",
-    "completed_time": "10-07 22:16",
-    "price": "100",
-    "rate": null
-  },
-  {
-    "title": "【更新 保字 魔法森林 藥水店】烤鰻魚｜橘色藥水｜白色藥水｜藍色藥水｜活力｜紅水｜橘水｜白水｜藍水｜活水｜礦泉水",
-    "server": "菇菇寶貝",
-    "category": "道具",
-    "bucket": "其他道具",
-    "completed_time": "10-07 21:57",
-    "price": "106",
-    "rate": null
-  },
-  {
-    "title": "皇家美髮*10💙皇家美髮💙皇家美髮皇家美髮皇家美髮皇家美髮皇家美髮皇家美髮",
-    "server": "菇菇寶貝",
-    "category": "商城道具",
-    "bucket": "其他",
-    "completed_time": "10-07 21:37",
-    "price": "540",
-    "rate": null
-  },
-  {
-    "title": "皇家美髮*10💙皇家美髮💙皇家美髮皇家美髮皇家美髮皇家美髮皇家美髮皇家美髮",
-    "server": "菇菇寶貝",
-    "category": "商城道具",
-    "bucket": "其他",
-    "completed_time": "10-07 21:25",
-    "price": "540",
-    "rate": null
-  },
-  {
-    "title": "皇家美髮*10💙皇家美髮💙皇家美髮皇家美髮皇家美髮皇家美髮皇家美髮皇家美髮",
-    "server": "菇菇寶貝",
-    "category": "商城道具",
-    "bucket": "其他",
-    "completed_time": "10-07 21:14",
-    "price": "540",
-    "rate": null
-  },
-  {
-    "title": "閃亮彗星*10💙閃亮彗星💙閃亮彗星閃亮彗星閃亮彗星閃亮彗星閃亮彗星閃亮彗星",
-    "server": "菇菇寶貝",
-    "category": "商城道具",
-    "bucket": "其他",
-    "completed_time": "10-07 21:04",
-    "price": "900",
-    "rate": null
-  },
-  {
-    "title": "9000萬楓幣=3000元菇寶專屬",
-    "server": "菇菇寶貝",
-    "category": "楓幣",
-    "bucket": "遊戲幣",
-    "completed_time": "10-07 20:56",
-    "price": "3000",
-    "rate": 30000.0
-  },
-  {
-    "title": "1360萬楓幣=425元本尊交易 標題幣價 10/6",
-    "server": "菇菇寶貝",
-    "category": "楓幣",
-    "bucket": "遊戲幣",
-    "completed_time": "10-08 03:04",
-    "price": "425",
-    "rate": 32000.0
-  },
-  {
-    "title": "340萬楓幣=50元【🔥妃兔🔥】✅現貨不用等✅勿直接下單✅幣值偶有浮動請小窗詢問✅政府營業登記",
-    "server": "菇菇寶貝",
-    "category": "楓幣",
-    "bucket": "遊戲幣",
-    "completed_time": "10-08 03:04",
-    "price": "50",
-    "rate": 68000.0
-  },
-  {
     "title": "2900萬楓幣=1015元【🔥妃兔🔥】✅現貨不用等✅勿直接下單✅幣值偶有浮動請小窗詢問✅政府營業登記",
     "server": "菇菇寶貝",
     "category": "楓幣",
@@ -4497,6 +4416,87 @@
     "bucket": "帳號",
     "completed_time": "10-26 07:41",
     "price": "6382",
+    "rate": null
+  },
+  {
+    "title": "200萬楓幣=100元賣楓幣",
+    "server": "菇菇寶貝",
+    "category": "楓幣",
+    "bucket": "遊戲幣",
+    "completed_time": "10-26 15:40",
+    "price": "1000",
+    "rate": 20000.0
+  },
+  {
+    "title": "825萬楓幣=400元825萬楓幣=400元",
+    "server": "菇菇寶貝",
+    "category": "楓幣",
+    "bucket": "遊戲幣",
+    "completed_time": "10-26 15:28",
+    "price": "400",
+    "rate": 20625.0
+  },
+  {
+    "title": "1700萬楓幣=1000元菇菇寶【幣勝客】 乾淨手打幣 詢問開專屬 現貨不用等最低價不用比⚡",
+    "server": "菇菇寶貝",
+    "category": "楓幣",
+    "bucket": "遊戲幣",
+    "completed_time": "10-26 15:26",
+    "price": "1000",
+    "rate": 17000.0
+  },
+  {
+    "title": "1080萬楓幣=636元⭐速柏24H⭐~菇菇寶貝~手打現貨~大量優惠~下單前請小窗咨詢",
+    "server": "菇菇寶貝",
+    "category": "楓幣",
+    "bucket": "遊戲幣",
+    "completed_time": "10-26 14:22",
+    "price": "636",
+    "rate": 16981.132075471698
+  },
+  {
+    "title": "1200萬楓幣=600元出售自打楓幣(小額幣)",
+    "server": "菇菇寶貝",
+    "category": "楓幣",
+    "bucket": "遊戲幣",
+    "completed_time": "10-26 12:17",
+    "price": "600",
+    "rate": 20000.0
+  },
+  {
+    "title": "220萬楓幣=100元小量賣幣",
+    "server": "菇菇寶貝",
+    "category": "楓幣",
+    "bucket": "遊戲幣",
+    "completed_time": "10-26 12:17",
+    "price": "500",
+    "rate": 22000.0
+  },
+  {
+    "title": "220萬楓幣=100元✨如意娛樂✨快速交易現貨不用等✅幣值浮動請小窗詢問🔥請勿直接下單✅政府營業登記",
+    "server": "菇菇寶貝",
+    "category": "楓幣",
+    "bucket": "遊戲幣",
+    "completed_time": "10-26 11:32",
+    "price": "4000",
+    "rate": 22000.0
+  },
+  {
+    "title": "3400萬楓幣=2120元⭐速柏24H⭐~菇菇寶貝~手打現貨~大量優惠~下單前請小窗咨詢",
+    "server": "菇菇寶貝",
+    "category": "楓幣",
+    "bucket": "遊戲幣",
+    "completed_time": "10-26 11:11",
+    "price": "2120",
+    "rate": 16037.735849056604
+  },
+  {
+    "title": "【105等、刺客】標賊如約",
+    "server": "菇菇寶貝",
+    "category": "帳號",
+    "bucket": "帳號",
+    "completed_time": "10-26 10:51",
+    "price": "106",
     "rate": null
   }
 ]
