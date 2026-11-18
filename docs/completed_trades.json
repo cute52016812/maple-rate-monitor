@@ -1,14 +1,5 @@
 [
   {
-    "title": "【如約89攻鳳凰】如約",
-    "server": "菇菇寶貝",
-    "category": "道具",
-    "bucket": "其他道具",
-    "completed_time": "10-23 22:23",
-    "price": "1600",
-    "rate": null
-  },
-  {
     "title": "【工地手套6AD】如約",
     "server": "菇菇寶貝",
     "category": "道具",
@@ -4497,6 +4488,15 @@
     "bucket": "其他",
     "completed_time": "11-18 06:44",
     "price": "100",
+    "rate": null
+  },
+  {
+    "title": "【65等、巫師(冰雷)】 上班沒空完~65全手動冰雷",
+    "server": "菇菇寶貝",
+    "category": "帳號",
+    "bucket": "帳號",
+    "completed_time": "11-18 13:30",
+    "price": "2659",
     "rate": null
   }
 ]
