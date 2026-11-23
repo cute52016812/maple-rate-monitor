@@ -1,14 +1,5 @@
 [
   {
-    "title": "【42等伊卡路斯速度披風】42等伊卡路斯速披",
-    "server": "菇菇寶貝",
-    "category": "道具",
-    "bucket": "卷軸",
-    "completed_time": "10-26 22:47",
-    "price": "499",
-    "rate": null
-  },
-  {
     "title": "6000萬楓幣=3000元賣楓幣",
     "server": "菇菇寶貝",
     "category": "楓幣",
@@ -4498,5 +4489,14 @@
     "completed_time": "11-22 17:19",
     "price": "900",
     "rate": null
+  },
+  {
+    "title": "310萬楓幣=100元310萬楓幣=100元",
+    "server": "菇菇寶貝",
+    "category": "楓幣",
+    "bucket": "遊戲幣",
+    "completed_time": "11-23 10:05",
+    "price": "100",
+    "rate": 31000.0
   }
 ]
